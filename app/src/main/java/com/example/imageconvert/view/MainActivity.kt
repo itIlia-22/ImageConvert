@@ -2,6 +2,7 @@ package com.example.imageconvert.view
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -11,6 +12,7 @@ import com.example.imageconvert.model.repository.ImagePhotoRepo
 import com.example.imageconvert.model.repository.ImagePhotoRepoImpl
 import com.example.imageconvert.model.repository.OnItemClick
 import com.example.imageconvert.presenter.MainPresenter
+import com.google.android.material.snackbar.Snackbar
 import moxy.MvpAppCompatActivity
 import moxy.ktx.moxyPresenter
 
@@ -22,10 +24,15 @@ class MainActivity : MvpAppCompatActivity(),MainView{
             this,ImagePhotoRepoImpl()
         )
     }
-
+    private lateinit var snackbar: Snackbar
+    private var isRecycler = true
     private val adapter = AdapterPhoto(object : OnItemClick{
         override fun onImageItemClick(stringPath: String) {
-            Toast.makeText(this@MainActivity,stringPath,Toast.LENGTH_LONG).show()
+            if (isRecycler) {
+                isRecycler = false
+                Log.d("Recycler", "click")
+                presenter.convertImage(stringPath)
+            }
         }
 
     })
@@ -34,11 +41,16 @@ class MainActivity : MvpAppCompatActivity(),MainView{
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.recyclerView.adapter = adapter
+        snackbar = Snackbar.make(binding.root, "", Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.cancel) {
+                presenter.disposeConvert()
+                isRecycler = true
+            }
     }
 
     override fun initList(listPhoto: List<String>)= with(binding) {
-        tvPhotos.append(" ${listPhoto.size}")
-        recyclerView.adapter = adapter
+        tvPhotos.text = "${resources.getString(R.string.add_photos)} ${listPhoto.size}"
         adapter.setData(listPhoto)
     }
 
@@ -55,6 +67,40 @@ class MainActivity : MvpAppCompatActivity(),MainView{
             )
         } else {
             presenter.loadImage()
+        }
+    }
+
+    override fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun showSnackBar(path: String) {
+        snackbar.setText("${resources.getString(R.string.converting)}\n$path")
+        snackbar.show()
+    }
+
+    override fun hideSnackBar() {
+        snackbar.dismiss()
+        isRecycler = true
+    }
+
+    override fun setClickRecycler(boolean: Boolean) {
+        binding.recyclerView.isClickable = boolean
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == READ_EXTERNAL_STORAGE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Разрешен доступ к галерее", Toast.LENGTH_SHORT).show()
+                presenter.loadImage()
+            } else {
+                Toast.makeText(this, "Нет доступа к галерее", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

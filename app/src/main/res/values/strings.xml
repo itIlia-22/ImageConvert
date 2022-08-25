@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">ImageConvert</string>
     <string name="photo">photo</string>
+    <string name="cancel">Cancel</string>
+    <string name="converting">Converting</string>
+    <string name="add_photos">AddPhotos</string>
 </resources>

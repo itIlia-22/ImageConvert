@@ -8,4 +8,8 @@ import moxy.viewstate.strategy.StateStrategyType
 interface MainView: MvpView{
     fun initList(listPhoto:List<String>)
     fun checkPermission()
+    fun showToast(message: String)
+    fun showSnackBar(path: String)
+    fun hideSnackBar()
+    fun setClickRecycler(boolean: Boolean)
 }
