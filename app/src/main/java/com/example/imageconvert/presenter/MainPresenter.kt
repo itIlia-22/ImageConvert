@@ -37,7 +37,7 @@ fun loadImage(){
 }
 
     fun convertImage(path: String) {
-        disposable = Convert.convertImage(context, path)
+        disposable = convertImage(context, path)
             .subscribeOn(Schedulers.io())
             .doOnSuccess {
                 Convert.saveImage(context, it)
